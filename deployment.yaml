@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cortex-demo
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gocortex-brokenbank
+  namespace: cortex-demo
+  labels:
+    app: gocortex-brokenbank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gocortex-brokenbank
+  template:
+    metadata:
+      labels:
+        app: gocortex-brokenbank
+    spec:
+      containers:
+        - name: brokenbank
+          image: gocortexio/gocortexbrokenbank:v1.4.0
+          ports:
+            - containerPort: 8888
+              name: flask
+            - containerPort: 8080
+              name: tomcat
+            - containerPort: 7777
+              name: react
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brokenbank-flask
+  namespace: cortex-demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: gocortex-brokenbank
+  ports:
+    - port: 8888
+      targetPort: 8888
+      name: flask
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brokenbank-tomcat
+  namespace: cortex-demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: gocortex-brokenbank
+  ports:
+    - port: 9999
+      targetPort: 8080
+      name: tomcat
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brokenbank-react
+  namespace: cortex-demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: gocortex-brokenbank
+  ports:
+    - port: 7777
+      targetPort: 7777
+      name: react
